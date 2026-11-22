@@ -47,42 +47,51 @@ public class playerMovement : MonoBehaviour
     }
 
     void Update()
+{
+    if (Input.GetKey(KeyCode.LeftShift))
+        currentSpeed = 4f;
+    else
+        currentSpeed = 7f;
+
+    horizontalInput = Input.GetAxisRaw("Horizontal");
+    verticalInput = Input.GetAxisRaw("Vertical");
+
+    if (Input.GetKeyDown(KeyCode.Space) && canJump)
     {
-        if (Input.GetKey(KeyCode.LeftShift))
-        {
-            currentSpeed = 4f;
-        }
-        else
-        {
-            currentSpeed = 7f;
-        }
+        jumpRequested = true;
+        canJump = false;
+    }
 
-        // Read WASD input
-        horizontalInput = Input.GetAxisRaw("Horizontal");
-        verticalInput = Input.GetAxisRaw("Vertical");
+    if (menu != null && playerCamera != null)
+    {
+        Vector3 directionToMenuVec = menu.transform.position - playerCamera.position;
+        directionToMenuVec.Normalize();
 
-        // Get camera direction
+        float dot = Vector3.Dot(directionToMenuVec, playerCamera.forward);
+
+        if (dot > 0.95f)
+        {
+            Raycast();
+            Debug.Log(dot);
+        }
+    }
+}
+    void FixedUpdate()
+    {
         if (playerCamera != null)
         {
             Vector3 forward = playerCamera.forward;
             Vector3 right = playerCamera.right;
 
-            // Keep movement horizontal
             forward.y = 0;
             right.y = 0;
 
             forward.Normalize();
             right.Normalize();
 
-            // Calculate movement relative to camera
-            Vector3 direction =
-                forward * verticalInput +
-                right * horizontalInput;
-
-            // Prevent diagonal movement from being faster
+            Vector3 direction = forward * verticalInput + right * horizontalInput;
             direction = Vector3.ClampMagnitude(direction, 1f);
 
-            // Apply movement
             rb.velocity = new Vector3(
                 direction.x * currentSpeed,
                 rb.velocity.y,
@@ -90,37 +99,6 @@ public class playerMovement : MonoBehaviour
             );
         }
 
-        // Jump
-        if (Input.GetKeyDown(KeyCode.Space) && canJump)
-        {
-            jumpRequested = true;
-            canJump = false;
-        }
-
-        // Menu detection
-        if (menu != null && playerCamera != null)
-        {
-            Vector3 directionToMenuVec =
-                menu.transform.position - playerCamera.position;
-
-            directionToMenuVec.Normalize();
-
-            float dot = Vector3.Dot(
-                directionToMenuVec,
-                playerCamera.forward
-            );
-
-            if (dot > 0.95f)
-            {
-                Raycast();
-                Debug.Log(dot);
-            }
-        }
-    }
-
-    void FixedUpdate()
-    {
-        // Apply jump
         if (jumpRequested)
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
@@ -131,10 +109,23 @@ public class playerMovement : MonoBehaviour
         displacement.y = 0;
 
         float realSpeed = displacement.magnitude / Time.fixedDeltaTime;
-
         Debug.Log("Real Horizontal Speed: " + realSpeed);
 
         previousPosition = rb.position;
+        Debug.Log("Velocity X: " + rb.velocity.x +
+          " | Velocity Z: " + rb.velocity.z);
+    }
+    
+    void LateUpdate()
+    {
+        if (playerCamera == null) return;
+
+        float cameraYaw = playerCamera.localEulerAngles.y;
+
+        transform.rotation = Quaternion.Euler(0f, cameraYaw, 0f);
+
+        Vector3 angles = playerCamera.localEulerAngles;
+        playerCamera.localRotation = Quaternion.Euler(angles.x, 0f, 0f);
     }
     public void OnCollisionEnter(Collision other)
     {
