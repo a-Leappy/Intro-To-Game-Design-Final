@@ -5,25 +5,17 @@ using UnityEngine;
 
 public class playerMovement : MonoBehaviour
 {
-    public float playerSpeed;
-    public float jumpForce;
-    public Rigidbody rb;
-    public bool canJump;
     public List<GameObject> raycastHitGameObjects;
-    public GameObject menu;
-    public Transform playerCamera;
-
+    private playerManager playerManager;
     private float horizontalInput;
     private float verticalInput;
-    private float currentSpeed;
     private bool jumpRequested;
     private Vector3 previousPosition;
-
+    
     void Start()
     {
-        rb = this.GetComponent<Rigidbody>();
-        canJump = true;
-        currentSpeed = 7f;
+        playerManager = this.GetComponent<playerManager>();
+        playerManager.currentSpeed = 7f;
 
         if (raycastHitGameObjects == null)
         {
@@ -39,35 +31,30 @@ public class playerMovement : MonoBehaviour
 
             if (h.distance < 1)
             {
-                canJump = true;
+                playerManager.canJump = true;
             }
         }
 
-        previousPosition = rb.position;
+        previousPosition = playerManager.rb.position;
     }
 
     void Update()
 {
-    if (Input.GetKey(KeyCode.LeftShift))
-        currentSpeed = 4f;
-    else
-        currentSpeed = 7f;
-
     horizontalInput = Input.GetAxisRaw("Horizontal");
     verticalInput = Input.GetAxisRaw("Vertical");
 
-    if (Input.GetKeyDown(KeyCode.Space) && canJump)
+    if (Input.GetKeyDown(KeyCode.Space) && playerManager.canJump)
     {
         jumpRequested = true;
-        canJump = false;
+        playerManager.canJump = false;
     }
 
-    if (menu != null && playerCamera != null)
+    if (playerManager.menu != null && playerManager.playerCamera != null)
     {
-        Vector3 directionToMenuVec = menu.transform.position - playerCamera.position;
+        Vector3 directionToMenuVec = playerManager.menu.transform.position - playerManager.playerCamera.position;
         directionToMenuVec.Normalize();
 
-        float dot = Vector3.Dot(directionToMenuVec, playerCamera.forward);
+        float dot = Vector3.Dot(directionToMenuVec, playerManager.playerCamera.forward);
 
         if (dot > 0.95f)
         {
@@ -78,10 +65,10 @@ public class playerMovement : MonoBehaviour
 }
     void FixedUpdate()
     {
-        if (playerCamera != null)
+        if (playerManager.playerCamera != null)
         {
-            Vector3 forward = playerCamera.forward;
-            Vector3 right = playerCamera.right;
+            Vector3 forward = playerManager.playerCamera.forward;
+            Vector3 right = playerManager.playerCamera.right;
 
             forward.y = 0;
             right.y = 0;
@@ -92,40 +79,37 @@ public class playerMovement : MonoBehaviour
             Vector3 direction = forward * verticalInput + right * horizontalInput;
             direction = Vector3.ClampMagnitude(direction, 1f);
 
-            rb.velocity = new Vector3(
-                direction.x * currentSpeed,
-                rb.velocity.y,
-                direction.z * currentSpeed
+            playerManager.rb.velocity = new Vector3(
+                direction.x * playerManager.currentSpeed,
+                playerManager.rb.velocity.y,
+                direction.z * playerManager.currentSpeed
             );
         }
 
         if (jumpRequested)
         {
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            playerManager.rb.AddForce(Vector3.up * playerManager.jumpForce, ForceMode.Impulse);
             jumpRequested = false;
         }
 
-        Vector3 displacement = rb.position - previousPosition;
+        Vector3 displacement = playerManager.rb.position - previousPosition;
         displacement.y = 0;
 
         float realSpeed = displacement.magnitude / Time.fixedDeltaTime;
-        Debug.Log("Real Horizontal Speed: " + realSpeed);
 
-        previousPosition = rb.position;
-        Debug.Log("Velocity X: " + rb.velocity.x +
-          " | Velocity Z: " + rb.velocity.z);
+        previousPosition = playerManager.rb.position;
     }
     
     void LateUpdate()
     {
-        if (playerCamera == null) return;
+        if (playerManager.playerCamera == null) return;
 
-        float cameraYaw = playerCamera.localEulerAngles.y;
+        float cameraYaw = playerManager.playerCamera.localEulerAngles.y;
 
         transform.rotation = Quaternion.Euler(0f, cameraYaw, 0f);
 
-        Vector3 angles = playerCamera.localEulerAngles;
-        playerCamera.localRotation = Quaternion.Euler(angles.x, 0f, 0f);
+        Vector3 angles = playerManager.playerCamera.localEulerAngles;
+        playerManager.playerCamera.localRotation = Quaternion.Euler(angles.x, 0f, 0f);
     }
     public void OnCollisionEnter(Collision other)
     {
@@ -133,7 +117,7 @@ public class playerMovement : MonoBehaviour
         {
             if (Vector3.Dot(contact.normal, Vector3.up) > 0.5f)
             {
-                canJump = true;
+                playerManager.canJump = true;
                 break;
             }
         }
@@ -141,11 +125,11 @@ public class playerMovement : MonoBehaviour
 
     public void Raycast()
     {
-        if (playerCamera != null)
+        if (playerManager.playerCamera != null)
         {
             Debug.DrawRay(
-                playerCamera.position,
-                playerCamera.forward * 10,
+                playerManager.playerCamera.position,
+                playerManager.playerCamera.forward * 10,
                 Color.blue,
                 10f
             );

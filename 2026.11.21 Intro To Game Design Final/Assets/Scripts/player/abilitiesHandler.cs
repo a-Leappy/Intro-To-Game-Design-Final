@@ -1,0 +1,126 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class abilitiesHandler : MonoBehaviour
+{
+    public GameObject projectile;
+    public float projectileSpeed;
+    private playerManager playerManager;
+    private float abilityECooldown = 0f;
+    private float abilityQCooldown = 0f;
+    private float abilityShiftCooldown = 0f;
+    private int maxAmmo = 10;
+    private int currentAmmo;
+    private bool isReloading = false;
+    void Start()
+    {   
+        currentAmmo = maxAmmo;
+        playerManager = this.GetComponent<playerManager>();
+    }
+
+    void Update()
+    {
+        DecrementCooldowns();
+        if (!isReloading)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                if (currentAmmo > 0)
+                {
+                    PrimaryFire();
+                    currentAmmo--;
+                }
+                else
+                {
+                    ReloadAmmo();
+                }
+            }
+            if (Input.GetMouseButtonDown(1))
+            {
+                // Implement secondary fire logic here
+            }
+            if (Input.GetKeyDown(KeyCode.LeftShift) && abilityShiftCooldown <= 0)
+            {
+                ShiftAbility();
+            }
+            if (Input.GetKeyDown(KeyCode.Q) && abilityQCooldown <= 0)
+            {
+                // Implement ability 2 logic here
+                abilityQCooldown = 10f; // Reset cooldown for Q ability
+            }
+            if (Input.GetKeyDown(KeyCode.E) && abilityECooldown <= 0)
+            {
+                EAbility();
+            }
+            if (Input.GetKeyDown(KeyCode.R) && currentAmmo < maxAmmo)
+            {
+                ReloadAmmo();
+            }
+        }
+    }
+    void DecrementCooldowns()
+    {
+        if (abilityECooldown > 0)
+        {
+            abilityECooldown -= Time.deltaTime;
+        }
+        if (abilityQCooldown > 0)
+        {
+            abilityQCooldown -= Time.deltaTime;
+        }
+        if (abilityShiftCooldown > 0)
+        {
+            abilityShiftCooldown -= Time.deltaTime;
+        }
+    }
+    void PrimaryFire()
+    {
+        Vector3 direction = playerManager.playerCamera.forward;
+
+        GameObject g = Instantiate(
+            projectile,
+            playerManager.playerCamera.position + direction * 1f,
+            Quaternion.LookRotation(direction)
+        );
+        Collider projectileCollider = g.GetComponent<Collider>();
+        Collider playerCollider = GetComponent<Collider>();
+        if (projectileCollider != null && playerCollider != null)
+        {
+            Physics.IgnoreCollision(projectileCollider, playerCollider);
+        }
+
+        g.GetComponent<Rigidbody>().velocity = direction * projectileSpeed;
+
+        Debug.Log("Primary fire activated");
+    }
+    void ReloadAmmo()
+    {
+        isReloading = true;
+        playerManager.SetPlayerSpeed(1, 2);
+        Invoke("SetAmmo", 2f); // Simulate a reload time of 2 seconds
+    }
+
+    void SetAmmo()
+    {
+        currentAmmo = maxAmmo;
+        isReloading = false;
+        Debug.Log("Reloaded ammo");
+    }
+    void ShiftAbility()
+    {
+        playerManager.SetPlayerSpeed(14f, 5); // Example: Increase speed for 5 seconds
+        abilityShiftCooldown = 10f; // Reset cooldown for shift ability
+    }
+    void EAbility()
+    {
+        playerManager.SetPlayerSpeed(1, 1); // Example: Heal player by 20 health points
+        Invoke("EAbilityFunction", 1f); // Delay the effect of E ability by 1 second
+    }
+    void EAbilityFunction()
+    {
+        playerManager.ModifyHealth(20); // Example: Heal player by 20 health points
+        abilityECooldown = 15f; // Reset cooldown for E ability
+    }
+}

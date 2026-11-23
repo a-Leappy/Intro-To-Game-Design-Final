@@ -7,7 +7,6 @@ public class enemyMovementHandler : MonoBehaviour
 {
     public GameObject Player;
     public Vector3 directionToPlayerVec;
-    public gameManager gM;
     public float speed;
     public float distanceToPlayer;
     public float trackingDistance;
@@ -28,7 +27,6 @@ public class enemyMovementHandler : MonoBehaviour
         Player = GameObject.FindGameObjectWithTag("Player");
         timer = maxTimer;
         attackTimer = attackMaxTimer;
-        playerDefense = gM.playerDefense;
         canAttack = true;
     }
 
@@ -95,8 +93,6 @@ public class enemyMovementHandler : MonoBehaviour
         }
         if (other.gameObject.CompareTag("Player") && canAttack == true)
         {
-            //GameObject.FindObjectOfType<gameManager>().LoseHealth(damage);
-            gameManager._Instance.LoseHealth(damage);
             Camera.main.GetComponent<cameraShake>().ShakeCamera();
             other.gameObject.GetComponent<Rigidbody>().AddForce(directionToPlayerVec * knockbackForce, ForceMode.Force);
             canAttack = false;

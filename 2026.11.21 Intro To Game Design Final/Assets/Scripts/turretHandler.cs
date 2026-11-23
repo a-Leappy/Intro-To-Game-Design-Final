@@ -32,6 +32,15 @@ public class turretHandler : MonoBehaviour
     {
         GameObject g = Instantiate(projectile, transform.GetChild(0).transform.position, Quaternion.identity);
         g.GetComponent<Rigidbody>().velocity = directionToPlayerVec * projectileSpeed;
+        Collider projectileCollider = g.GetComponent<Collider>();
+        Collider treeCollider = GetComponent<Collider>();
+
+        if (projectileCollider != null && treeCollider != null)
+        {
+            Physics.IgnoreCollision(projectileCollider, treeCollider);
+        }
+
+        g.GetComponent<Rigidbody>().velocity = directionToPlayerVec * projectileSpeed;
     }
 }
 //Need to make an empty cild component
