@@ -12,12 +12,12 @@ public class NetworkDebug : MonoBehaviour
 
     void OnConnected(ulong clientId)
     {
-        Debug.Log("CONNECTED: " + clientId);
+        Debug.Log("Client Connected: " + clientId);
     }
 
     void OnDisconnected(ulong clientId)
     {
-        Debug.LogWarning("DISCONNECTED: " + clientId);
+        Debug.Log("Client Disconnected: " + clientId);
     }
 
     void OnDestroy()
