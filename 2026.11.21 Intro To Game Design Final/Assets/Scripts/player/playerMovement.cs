@@ -2,8 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
-public class playerMovement : MonoBehaviour
+public class playerMovement : NetworkBehaviour
 {
     public List<GameObject> raycastHitGameObjects;
     private playerManager playerManager;
@@ -102,14 +103,12 @@ public class playerMovement : MonoBehaviour
     
     void LateUpdate()
     {
+        if (!IsSpawned || !IsOwner) return;
         if (playerManager.playerCamera == null) return;
 
-        float cameraYaw = playerManager.playerCamera.localEulerAngles.y;
+        float cameraYaw = playerManager.playerCamera.eulerAngles.y;
 
         transform.rotation = Quaternion.Euler(0f, cameraYaw, 0f);
-
-        Vector3 angles = playerManager.playerCamera.localEulerAngles;
-        playerManager.playerCamera.localRotation = Quaternion.Euler(angles.x, 0f, 0f);
     }
     public void OnCollisionEnter(Collision other)
     {

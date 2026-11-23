@@ -2,8 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
-public class abilitiesHandler : MonoBehaviour
+public class abilitiesHandler : NetworkBehaviour
 {
     public GameObject projectile;
     public float projectileSpeed;
@@ -14,6 +15,7 @@ public class abilitiesHandler : MonoBehaviour
     private int maxAmmo = 10;
     private int currentAmmo;
     private bool isReloading = false;
+    private bool fireRequested = false;
     void Start()
     {   
         currentAmmo = maxAmmo;
@@ -22,6 +24,7 @@ public class abilitiesHandler : MonoBehaviour
 
     void Update()
     {
+        if (!IsSpawned || !IsOwner) return;
         DecrementCooldowns();
         if (!isReloading)
         {
@@ -29,7 +32,7 @@ public class abilitiesHandler : MonoBehaviour
             {
                 if (currentAmmo > 0)
                 {
-                    PrimaryFire();
+                    fireRequested = true;
                     currentAmmo--;
                 }
                 else
@@ -60,6 +63,16 @@ public class abilitiesHandler : MonoBehaviour
             }
         }
     }
+    void LateUpdate()
+    {
+        if (!IsSpawned || !IsOwner) return;
+
+        if (fireRequested)
+        {
+            fireRequested = false;
+            PrimaryFire();
+        }
+    }
     void DecrementCooldowns()
     {
         if (abilityECooldown > 0)
@@ -75,26 +88,38 @@ public class abilitiesHandler : MonoBehaviour
             abilityShiftCooldown -= Time.deltaTime;
         }
     }
+
     void PrimaryFire()
     {
-        Vector3 direction = playerManager.playerCamera.forward;
+        if (playerManager.playerCamera == null) return;
+
+        Transform cam = playerManager.playerCamera;
+        Vector3 direction = cam.forward;
 
         GameObject g = Instantiate(
             projectile,
-            playerManager.playerCamera.position + direction * 1f,
+            cam.position + direction * 1f,
             Quaternion.LookRotation(direction)
         );
-        Collider projectileCollider = g.GetComponent<Collider>();
-        Collider playerCollider = GetComponent<Collider>();
-        if (projectileCollider != null && playerCollider != null)
+
+        // Prevent projectile from colliding with the player
+        Collider[] projectileColliders = g.GetComponentsInChildren<Collider>();
+        Collider[] playerColliders = GetComponentsInChildren<Collider>();
+
+        foreach (Collider projectileCollider in projectileColliders)
         {
-            Physics.IgnoreCollision(projectileCollider, playerCollider);
+            foreach (Collider playerCollider in playerColliders)
+            {
+                Physics.IgnoreCollision(projectileCollider, playerCollider);
+            }
         }
 
-        g.GetComponent<Rigidbody>().velocity = direction * projectileSpeed;
+        Rigidbody rb = g.GetComponent<Rigidbody>();
+        rb.velocity = direction * projectileSpeed;
 
         Debug.Log("Primary fire activated");
     }
+
     void ReloadAmmo()
     {
         isReloading = true;

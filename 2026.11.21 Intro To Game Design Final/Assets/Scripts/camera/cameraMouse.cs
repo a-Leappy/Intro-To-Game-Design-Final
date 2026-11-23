@@ -1,16 +1,18 @@
+
 using UnityEngine;
 
 public class cameraMouse : MonoBehaviour
 {
     public float sensitivity = 1f;
+    public bool canMove = false;
 
     private float xRotation;
     private float yRotation;
+    private cameraFollow follow;
 
     void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        follow = GetComponent<cameraFollow>();
 
         Vector3 angles = transform.localEulerAngles;
 
@@ -18,20 +20,31 @@ public class cameraMouse : MonoBehaviour
         yRotation = angles.y;
     }
 
-    void Update()
-    {
-        float mouseX = Input.GetAxisRaw("Mouse X");
-        float mouseY = Input.GetAxisRaw("Mouse Y");
 
-        xRotation -= mouseY * sensitivity;
-        yRotation += mouseX * sensitivity;
+void Update()
+{
+    if (!canMove)
+        return;
 
-        xRotation = Mathf.Clamp(xRotation, -89f, 89f);
-        yRotation = Mathf.Repeat(yRotation, 360f);
-    }
+    Cursor.lockState = CursorLockMode.Locked;
+    Cursor.visible = false;
+
+    float mouseX = Input.GetAxisRaw("Mouse X");
+    float mouseY = Input.GetAxisRaw("Mouse Y");
+
+    xRotation -= mouseY * sensitivity;
+    yRotation += mouseX * sensitivity;
+
+    xRotation = Mathf.Clamp(xRotation, -89f, 89f);
+    yRotation = Mathf.Repeat(yRotation, 360f);
+}
+
 
     void LateUpdate()
     {
+        if (!canMove)
+            return;
+
         transform.localRotation =
             Quaternion.Euler(xRotation, yRotation, 0f);
     }
