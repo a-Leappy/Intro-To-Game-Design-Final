@@ -6,8 +6,6 @@ public class networkDebug : MonoBehaviour
 {
     void Start()
     {
-        Debug.Log("NETWORK DEBUG LOADED");
-
         NetworkManager.Singleton.OnClientConnectedCallback += OnConnected;
         NetworkManager.Singleton.OnClientDisconnectCallback += OnDisconnected;
 
@@ -20,19 +18,13 @@ public class networkDebug : MonoBehaviour
 
         if (nm == null)
         {
-            Debug.LogError("NetworkManager is NULL");
             return;
         }
 
-        Debug.Log("Is Client: " + nm.IsClient +
-                  " | Is Server: " + nm.IsServer +
-                  " | Is Connected: " + nm.IsConnectedClient +
-                  " | Is Listening: " + nm.IsListening);
     }
 
     void OnConnected(ulong clientId)
     {
-        Debug.Log("CONNECTED: " + clientId);
     }
 
     void OnDisconnected(ulong clientId)

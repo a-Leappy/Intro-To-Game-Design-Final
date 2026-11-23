@@ -28,7 +28,6 @@ public class playerMovement : NetworkBehaviour
         foreach (RaycastHit h in hits)
         {
             raycastHitGameObjects.Add(h.collider.gameObject);
-            Debug.Log(h.distance);
 
             if (h.distance < 1)
             {
@@ -41,6 +40,7 @@ public class playerMovement : NetworkBehaviour
 
     void Update()
 {
+    if (!IsSpawned || !IsOwner) return;
     horizontalInput = Input.GetAxisRaw("Horizontal");
     verticalInput = Input.GetAxisRaw("Vertical");
 
@@ -60,7 +60,6 @@ public class playerMovement : NetworkBehaviour
         if (dot > 0.95f)
         {
             Raycast();
-            Debug.Log(dot);
         }
     }
 }

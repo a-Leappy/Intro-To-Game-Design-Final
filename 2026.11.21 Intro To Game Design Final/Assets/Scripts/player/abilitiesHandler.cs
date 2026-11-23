@@ -95,15 +95,34 @@ public class abilitiesHandler : NetworkBehaviour
 
         Transform cam = playerManager.playerCamera;
         Vector3 direction = cam.forward;
+        Vector3 spawnPosition = cam.position + direction * 1f;
 
+        PrimaryFireServerRpc(spawnPosition, direction);
+    }
+
+    [ServerRpc]
+    void PrimaryFireServerRpc(Vector3 spawnPosition, Vector3 direction)
+    {
         GameObject g = Instantiate(
             projectile,
-            cam.position + direction * 1f,
+            spawnPosition,
             Quaternion.LookRotation(direction)
         );
 
-        // Prevent projectile from colliding with the player
+        NetworkObject networkObject = g.GetComponent<NetworkObject>();
+
+        if (networkObject == null)
+        {
+            Debug.LogError("Projectile is missing NetworkObject!");
+            Destroy(g);
+            return;
+        }
+
+        networkObject.Spawn();
+
+        // Prevent projectile from colliding with the firing player
         Collider[] projectileColliders = g.GetComponentsInChildren<Collider>();
+
         Collider[] playerColliders = GetComponentsInChildren<Collider>();
 
         foreach (Collider projectileCollider in projectileColliders)
@@ -115,7 +134,11 @@ public class abilitiesHandler : NetworkBehaviour
         }
 
         Rigidbody rb = g.GetComponent<Rigidbody>();
-        rb.velocity = direction * projectileSpeed;
+
+        if (rb != null)
+        {
+            rb.velocity = direction * projectileSpeed;
+        }
 
         Debug.Log("Primary fire activated");
     }
