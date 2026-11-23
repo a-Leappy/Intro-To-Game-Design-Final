@@ -110,19 +110,17 @@ public class abilitiesHandler : NetworkBehaviour
         );
 
         NetworkObject networkObject = g.GetComponent<NetworkObject>();
+        Rigidbody rb = g.GetComponent<Rigidbody>();
 
-        if (networkObject == null)
+        if (networkObject == null || rb == null)
         {
-            Debug.LogError("Projectile is missing NetworkObject!");
+            Debug.LogError("Projectile missing NetworkObject or Rigidbody!");
             Destroy(g);
             return;
         }
 
-        networkObject.Spawn();
-
-        // Prevent projectile from colliding with the firing player
+        // Prevent collision with the player firing
         Collider[] projectileColliders = g.GetComponentsInChildren<Collider>();
-
         Collider[] playerColliders = GetComponentsInChildren<Collider>();
 
         foreach (Collider projectileCollider in projectileColliders)
@@ -133,16 +131,15 @@ public class abilitiesHandler : NetworkBehaviour
             }
         }
 
-        Rigidbody rb = g.GetComponent<Rigidbody>();
+        direction.Normalize();
 
-        if (rb != null)
-        {
-            rb.velocity = direction * projectileSpeed;
-        }
+        rb.isKinematic = false;
+        rb.velocity = direction * projectileSpeed;
 
-        Debug.Log("Primary fire activated");
+        Debug.Log("Projectile velocity: " + rb.velocity);
+
+        networkObject.Spawn();
     }
-
     void ReloadAmmo()
     {
         isReloading = true;
