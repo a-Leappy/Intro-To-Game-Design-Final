@@ -41,7 +41,7 @@ public class playerManager : NetworkBehaviour
         }
     }
 
-    public void SetPlayerSpeed(float speed, int time)
+    public void SetPlayerSpeed(float speed, float time)
     {
         currentSpeed = speed;
         Invoke("ResetPlayerSpeed", time);
@@ -56,7 +56,7 @@ public class playerManager : NetworkBehaviour
     public void ModifyHealth(int amount)
     {
         playerHealth += amount;
-
+        Debug.Log("Player health modified by " + amount + ". Current health: " + playerHealth);
         if (playerHealth > 100)
         {
             playerHealth = 100;

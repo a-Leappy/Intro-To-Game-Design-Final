@@ -16,6 +16,7 @@ public class abilitiesHandler : NetworkBehaviour
     private int currentAmmo;
     private bool isReloading = false;
     private bool fireRequested = false;
+    public GameObject qProjectile;
     void Start()
     {   
         currentAmmo = maxAmmo;
@@ -50,8 +51,7 @@ public class abilitiesHandler : NetworkBehaviour
             }
             if (Input.GetKeyDown(KeyCode.Q) && abilityQCooldown <= 0)
             {
-                // Implement ability 2 logic here
-                abilityQCooldown = 10f; // Reset cooldown for Q ability
+                QAbility();
             }
             if (Input.GetKeyDown(KeyCode.E) && abilityECooldown <= 0)
             {
@@ -101,10 +101,10 @@ public class abilitiesHandler : NetworkBehaviour
     }
 
     [ServerRpc]
-    void PrimaryFireServerRpc(Vector3 spawnPosition, Vector3 direction)
+    void PrimaryFireServerRpc(Vector3 spawnPosition,Vector3 direction, bool isQProjectile = false)
     {
         GameObject g = Instantiate(
-            projectile,
+            isQProjectile ? qProjectile : projectile,
             spawnPosition,
             Quaternion.LookRotation(direction)
         );
@@ -140,10 +140,11 @@ public class abilitiesHandler : NetworkBehaviour
 
         networkObject.Spawn();
     }
+
     void ReloadAmmo()
     {
         isReloading = true;
-        playerManager.SetPlayerSpeed(1, 2);
+        playerManager.SetPlayerSpeed(2, 2);
         Invoke("SetAmmo", 2f); // Simulate a reload time of 2 seconds
     }
 
@@ -160,12 +161,54 @@ public class abilitiesHandler : NetworkBehaviour
     }
     void EAbility()
     {
-        playerManager.SetPlayerSpeed(1, 1); // Example: Heal player by 20 health points
-        Invoke("EAbilityFunction", 1f); // Delay the effect of E ability by 1 second
+        playerManager.SetPlayerSpeed(2, 1); // Example: Heal player by 20 health points
+        Invoke("EAbilityFunction", 2f); // Delay the effect of E ability by 1 second
     }
     void EAbilityFunction()
     {
         playerManager.ModifyHealth(20); // Example: Heal player by 20 health points
         abilityECooldown = 15f; // Reset cooldown for E ability
+    }
+    void QAbility()
+    {
+        if (playerManager.playerCamera == null) return;
+
+        Transform cam = playerManager.playerCamera;
+        Vector3 direction = cam.forward;
+        Vector3 spawnPosition = cam.position + direction * 1f;
+
+        PrimaryFireServerRpc(spawnPosition, direction, true);
+
+        abilityQCooldown = 10f;
+    }
+
+    public void QAbilityFunction(float shakeTime = 3f)
+    {
+        Transform cam = playerManager.playerCamera;
+
+        if (cam != null)
+        {
+            cam.GetComponent<cameraShake>()?.ShakeCamera(shakeTime);
+        }
+
+        isReloading = true;
+        fireRequested = false;
+
+        playerManager.SetPlayerSpeed(0, shakeTime);
+
+        CancelInvoke(nameof(EndQAbility));
+        Invoke(nameof(EndQAbility), shakeTime);
+    }
+
+    void EndQAbility()
+    {
+        isReloading = false;
+    }
+    [ClientRpc]
+    public void QHitClientRpc()
+    {
+        if (!IsOwner) return;
+
+        QAbilityFunction(3f);
     }
 }

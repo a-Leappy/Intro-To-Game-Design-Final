@@ -7,6 +7,7 @@ using Unity.Netcode;
 public class projectile : NetworkBehaviour
 {
     public float projectileSpeed;
+    public bool isQProjectile = false;
     private Rigidbody rb;
 
     void Start()
@@ -31,7 +32,26 @@ public class projectile : NetworkBehaviour
 
     public void OnCollisionEnter(Collision other)
     {
-        if (!IsServer) return;
+        if (!IsServer || !IsSpawned) return;
+
+        if (isQProjectile)
+        {
+            abilitiesHandler target =
+                other.collider.GetComponentInParent<abilitiesHandler>();
+
+            if (target != null && target.IsSpawned)
+            {
+                target.QHitClientRpc();
+            }
+        } else
+        {
+            playerManager target = other.collider.GetComponentInParent<playerManager>();
+
+            if (target != null && target.IsSpawned)
+            {
+                target.ModifyHealth(-20);
+            }
+        }
 
         Suicide();
     }

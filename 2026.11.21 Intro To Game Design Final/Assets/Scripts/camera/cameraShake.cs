@@ -6,7 +6,6 @@ using UnityEngine;
 public class cameraShake : MonoBehaviour
 {
     public float shakeMagnitude;
-    public float shakeTime;
     public bool isShaking;
     Vector3 cameraAngle;
     float time;
@@ -27,7 +26,7 @@ public class cameraShake : MonoBehaviour
             isShaking = false;
         }
     }
-    public void ShakeCamera()
+    public void ShakeCamera(float shakeTime = 3f)
     {
         isShaking = true;
         cameraAngle = transform.eulerAngles;
