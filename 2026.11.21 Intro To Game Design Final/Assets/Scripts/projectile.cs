@@ -36,16 +36,18 @@ public class projectile : NetworkBehaviour
 
         if (isQProjectile)
         {
-            abilitiesHandler target =
+            abilitiesHandler target = 
                 other.collider.GetComponentInParent<abilitiesHandler>();
 
             if (target != null && target.IsSpawned)
             {
                 target.QHitClientRpc();
             }
-        } else
+        }
+        else
         {
-            playerManager target = other.collider.GetComponentInParent<playerManager>();
+            playerManager target = 
+                other.collider.GetComponentInParent<playerManager>();
 
             if (target != null && target.IsSpawned)
             {

@@ -11,8 +11,7 @@ public class playerManager : NetworkBehaviour
     public float currentSpeed;
     public Rigidbody rb;
     public bool canJump;
-    public int playerHealth = 100;
-    public Transform playerCamera;
+    public NetworkVariable<int> playerHealth = new NetworkVariable<int>(100);    public Transform playerCamera;
     public GameObject menu;
 
     void Start()
@@ -55,17 +54,36 @@ public class playerManager : NetworkBehaviour
 
     public void ModifyHealth(int amount)
     {
-        playerHealth += amount;
-        Debug.Log("Player health modified by " + amount + ". Current health: " + playerHealth);
-        if (playerHealth > 100)
+        if (!IsServer)
         {
-            playerHealth = 100;
+            if (IsOwner)
+            {
+                ModifyHealthServerRpc(amount);
+            }
+            return;
         }
 
-        if (playerHealth <= 0)
+        playerHealth.Value += amount;
+
+        if (playerHealth.Value > 100)
         {
+            playerHealth.Value = 100;
+        }
+
+        Debug.Log("Player health modified by " + amount +
+            ". Current health: " + playerHealth.Value);
+
+        if (playerHealth.Value <= 0)
+        {
+            playerHealth.Value = 0;
             Die();
         }
+    }
+
+    [ServerRpc]
+    void ModifyHealthServerRpc(int amount)
+    {
+        ModifyHealth(amount);
     }
 
     void Die()

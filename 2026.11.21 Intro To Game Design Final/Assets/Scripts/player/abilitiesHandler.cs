@@ -104,10 +104,12 @@ public class abilitiesHandler : NetworkBehaviour
     void PrimaryFireServerRpc(Vector3 spawnPosition,Vector3 direction, bool isQProjectile = false)
     {
         GameObject g = Instantiate(
-            isQProjectile ? qProjectile : projectile,
+            projectile,
             spawnPosition,
             Quaternion.LookRotation(direction)
         );
+
+        g.GetComponent<projectile>().isQProjectile = isQProjectile;
 
         NetworkObject networkObject = g.GetComponent<NetworkObject>();
         Rigidbody rb = g.GetComponent<Rigidbody>();
