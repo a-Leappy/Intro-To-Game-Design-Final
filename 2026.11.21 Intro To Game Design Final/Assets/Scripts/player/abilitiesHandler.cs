@@ -163,13 +163,13 @@ public class abilitiesHandler : NetworkBehaviour
     }
     void EAbility()
     {
+        abilityECooldown = 15f; // Reset cooldown for E ability
         playerManager.SetPlayerSpeed(2, 1); // Example: Heal player by 20 health points
         Invoke("EAbilityFunction", 2f); // Delay the effect of E ability by 1 second
     }
     void EAbilityFunction()
     {
         playerManager.ModifyHealth(20); // Example: Heal player by 20 health points
-        abilityECooldown = 15f; // Reset cooldown for E ability
     }
     void QAbility()
     {
@@ -186,11 +186,27 @@ public class abilitiesHandler : NetworkBehaviour
 
     public void QAbilityFunction(float shakeTime = 3f)
     {
+        Debug.Log("Q ability hit! IsOwner: " + IsOwner);
+
         Transform cam = playerManager.playerCamera;
 
         if (cam != null)
         {
-            cam.GetComponent<cameraShake>()?.ShakeCamera(shakeTime);
+            cameraShake shake = cam.GetComponent<cameraShake>();
+
+            if (shake != null)
+            {
+                Debug.Log("Starting camera shake");
+                shake.ShakeCamera(shakeTime);
+            }
+            else
+            {
+                Debug.LogWarning("Camera missing cameraShake component");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Player camera is null");
         }
 
         isReloading = true;

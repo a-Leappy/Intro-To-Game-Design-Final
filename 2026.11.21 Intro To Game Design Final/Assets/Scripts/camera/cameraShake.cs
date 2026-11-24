@@ -1,3 +1,4 @@
+
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -5,31 +6,28 @@ using UnityEngine;
 
 public class cameraShake : MonoBehaviour
 {
-    public float shakeMagnitude;
+    public float shakeMagnitude = 5f;
     public bool isShaking;
-    Vector3 cameraAngle;
     float time;
-    void Update()
+
+    void LateUpdate()
     {
-        if (isShaking && time <= 0)
-        {
-            ShakeCamera();
-        }
-        if (isShaking)
-        {
-            time -= Time.deltaTime;
-            transform.eulerAngles = cameraAngle + (Random.insideUnitSphere * shakeMagnitude);
-        }
+        if (!isShaking) return;
+
+        time -= Time.deltaTime;
+
         if (time <= 0)
         {
-            transform.eulerAngles = cameraAngle;
             isShaking = false;
+            return;
         }
+
+        transform.eulerAngles += Random.insideUnitSphere * shakeMagnitude;
     }
+
     public void ShakeCamera(float shakeTime = 3f)
     {
         isShaking = true;
-        cameraAngle = transform.eulerAngles;
         time = shakeTime;
     }
 }
